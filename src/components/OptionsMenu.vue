@@ -128,6 +128,6 @@ export default {
 <style lang="scss">
 .my-menu-link {
   color: white;
-  background: #ee8a38;
+  background: $accent;
 }
 </style>

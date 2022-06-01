@@ -20,31 +20,30 @@
 </template>
 
 <script>
-import { useLoginStore } from "src/stores/login-store";
 import { useRecordsStore } from "src/stores/records-store";
 
 const columns = [
-  //Colummn Object def
   {
     name: "codigoUsuario",
     label: "Usuario",
     field: (row) => /* row.codigoUsuario + " " +  */ row.nombreUsuario,
     required: true,
-    align: screenLeft,
+    align: "left",
     sortable: true,
     format: (val, row) => `${val}`,
-    sortOrder: "ad",
   },
   {
     name: "empresa",
     label: "Cliente",
     field: (row) => row.cliente + " - " + row.descripcionServicio,
-    align: screenLeft,
+    align: "left",
   },
   {
     name: "horaInicio",
     label: "Inicio",
     sortable: true,
+    sortOrder: "da",
+    align: "left",
     field: (row) =>
       new Date(row.horaInicio).toLocaleString([], {
         day: "2-digit",
@@ -58,21 +57,12 @@ const columns = [
 
 export default {
   setup() {
-    //const loginStore = useLoginStore();
-    //loginStore.users = [];
-    //loginStore.getAllUsersComplete();
-    /* function getU() {
-      loginStore.users = [];
-      loginStore.getAllUsersComplete();
-    } */
     const recordsStore = useRecordsStore();
     recordsStore.getNowRecords();
 
     return {
       recordsStore,
       columns,
-      //loginStore,
-      //getU,
     };
   },
 };
