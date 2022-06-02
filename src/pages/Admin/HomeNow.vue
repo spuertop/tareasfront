@@ -1,10 +1,6 @@
 <template>
-  <div class="q-ma-md">
+  <q-page class="q-pa-md">
     <p class="text-h5">En este momento...</p>
-    <!-- <pre>{{ loginStore.user }}</pre> -->
-    <!-- <pre>{{ loginStore.users }}</pre> -->
-    <!-- <q-btn label="Dale" @click="getU"></q-btn> -->
-
     <!-- Nombre, cliente+servicio, horaInicio -->
     <q-table
       class="my-sticky-header-table"
@@ -14,9 +10,7 @@
       bordered
       :rows-per-page-options="[0]"
     />
-
-    <!-- <pre>{{ recordsStore.nowrecords }}</pre> -->
-  </div>
+  </q-page>
 </template>
 
 <script>

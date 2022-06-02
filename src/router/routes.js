@@ -9,18 +9,24 @@ const routes = [
     ]
   },
   {
-    path: '/admin',
+    path: '/api',
     component: () => import('layouts/AdminLayout.vue'),
     children: [
-      { path: '/admin', component: () => import('pages/Admin/AdminStart.vue') },
+      { path: '/api/login', component: () => import('pages/Admin/AdminStart.vue') },
     ]
   },
   {
-    path: '/home',
+    path: '/api/now',
     component: () => import('layouts/AdminLayout.vue'),
     children: [
-      { path: '/home', component: () => import('pages/Admin/HomeNow.vue') },
-      { path: '/home2', component: () => import('pages/AboutPage.vue') },
+      { path: '/api/now', component: () => import('pages/Admin/HomeNow.vue') },
+      { path: '/api/last', component: () => import('pages/AboutPage.vue') },
+
+      //SETTINGS
+      { path: '/api/workplaces', component: () => import('pages/Admin/Settings/WorkPlacesPage.vue') },
+
+      //TESTING
+      { path: '/api/test', component: () => import('pages/Admin/Settings/TESTw.vue') },
     ]
   },
   {

@@ -70,8 +70,16 @@
 import { useQuasar } from "quasar";
 import { reactive, ref } from "vue";
 import { useLoginStore } from "src/stores/login-store";
+import { useRouter } from "vue-router";
 
 export default {
+  beforeCreate() {
+    const loginStore = useLoginStore();
+    if (loginStore.activeUser) {
+      const router = useRouter();
+      router.push("/api/now");
+    }
+  },
   setup() {
     const loginStore = useLoginStore();
     const $q = useQuasar();

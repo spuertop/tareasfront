@@ -27,7 +27,7 @@ export const useLoginStore = defineStore('login', {
         sessionStorage.setItem('token', res.data.token);
         sessionStorage.setItem('user', JSON.stringify(res.data.user));
         api.defaults.headers.common['Authorization'] = res.data.token;
-        this.router.push('/home');
+        this.router.push('/api/now');
         return res
       } catch (error) {
         return error.response.data.error
@@ -39,7 +39,7 @@ export const useLoginStore = defineStore('login', {
       this.user = '';
       this.token = false;
       api.defaults.headers.common['Authorization'] = '';
-      this.router.push('/admin');
+      this.router.push('/api/login');
     },
     getUserFromStorage() {
       if (!this.token) {
@@ -56,7 +56,7 @@ export const useLoginStore = defineStore('login', {
           this.user = '';
           this.token = false;
           api.defaults.headers.common['Authorization'] = '';
-          this.router.push('/admin');
+          this.router.push('/api/login');
         }
       }
     },

@@ -12,7 +12,7 @@
         color="white"
         text-color="blue"
         unelevated
-        to="/"
+        to="/api/login"
         label="Ir al Inicio"
         no-caps
       />
