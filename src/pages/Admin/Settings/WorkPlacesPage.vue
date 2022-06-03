@@ -9,9 +9,10 @@
       :filter="filter"
       no-data-label="No se han encontrado datos"
       no-results-label="Sin coincidencias"
-      row-key="name"
+      row-key="code"
       v-model:selected="selected"
       selection="single"
+      @row-dblclick="onRowDlbClick"
     >
       <template v-slot:top="props">
         <q-chip
@@ -50,8 +51,21 @@
       </template>
       <template v-slot:bottom>
         <div class="q-pa-sm q-gutter-sm">
-          <q-btn round color="accent" icon="add" glossy @click="addRow" />
-          <q-btn round color="accent" icon="edit" glossy @click="addRow" />
+          <q-btn
+            round
+            color="accent"
+            icon="add"
+            glossy
+            @click="showDialogAdd"
+          />
+          <q-btn
+            round
+            color="accent"
+            icon="edit"
+            glossy
+            @click="showDialogEdit"
+            :disable="selected.length == 0"
+          />
         </div>
         <q-space />
         <q-btn
@@ -64,23 +78,122 @@
         />
       </template>
     </q-table>
+    <!-- DIALOG CONFIRM DELETE -->
     <q-dialog v-model="confirmDelete" persistent>
-      <q-card class="bg-negative text-white">
+      <q-card style="min-width: 25vw" flat bordered>
+        <q-item class="bg-accent text-white">
+          <q-item-section avatar>
+            <q-avatar icon="delete" color="negative" text-color="white" />
+          </q-item-section>
+          <q-item-section>
+            <q-item-label class="text-h6">Eliminar</q-item-label>
+          </q-item-section>
+        </q-item>
         <q-card-section class="row items-center">
-          <q-avatar icon="delete" color="white" text-color="negative" />
-          <span class="q-ml-sm"
-            >Esta acción no se puede deshacer.<br />
+          <span class="q-ml-sm">
+            Vas a eliminar el centro
+            <strong>{{ selected[0] ? selected[0].name : "" }}</strong
+            >. <br />
+            Esta acción no se puede deshacer.<br />
             ¿Seguro que lo quieres borrar?</span
           >
         </q-card-section>
 
         <q-card-actions align="right">
-          <q-btn label="No, cancelar" color="primary" v-close-popup />
+          <q-btn label="Cancelar" color="accent" v-close-popup />
           <q-btn
-            label="Sí, eliminar"
-            color="positive"
+            label="Eliminar"
+            color="primary"
             v-close-popup
             @click="deleteSelected"
+          />
+        </q-card-actions>
+      </q-card>
+    </q-dialog>
+    <!-- DIALOG EDIT -->
+    <q-dialog v-model="dialogEdit">
+      <q-card style="min-width: 25vw" flat bordered>
+        <q-item class="bg-primary text-white">
+          <q-item-section avatar>
+            <q-avatar icon="edit" color="accent" text-color="white" />
+          </q-item-section>
+          <q-item-section>
+            <q-item-label class="text-h6">Editar</q-item-label>
+          </q-item-section>
+        </q-item>
+        <q-card-section>
+          <q-form class="q-ma-sm" @submit.prevent="updateSelected">
+            <q-input
+              v-model="inputName"
+              label="Nombre del centro"
+              autofocus
+              :rules="[
+                (val) =>
+                  (val && val.length > 4) ||
+                  'No puede estar vacio, mín. 4 chars',
+              ]"
+            />
+            <q-toggle
+              v-model="inputActive"
+              checked-icon="check"
+              color="green"
+              unchecked-icon="clear"
+              :label="inputActive ? 'Centro activado' : 'Centro desactivado'"
+            />
+          </q-form>
+        </q-card-section>
+
+        <q-card-actions align="right">
+          <q-btn label="Cancelar" color="accent" v-close-popup />
+          <q-btn
+            label="Actualizar"
+            color="primary"
+            v-close-popup
+            @click="updateSelected"
+          />
+        </q-card-actions>
+      </q-card>
+    </q-dialog>
+    <!-- DIALOG ADD -->
+    <q-dialog v-model="dialogAdd">
+      <q-card style="min-width: 25vw" flat bordered>
+        <q-item class="bg-primary text-white">
+          <q-item-section avatar>
+            <q-avatar icon="add" color="accent" text-color="white" />
+          </q-item-section>
+          <q-item-section>
+            <q-item-label class="text-h6">Nuevo</q-item-label>
+          </q-item-section>
+        </q-item>
+        <q-card-section>
+          <q-form class="q-ma-sm" @submit.prevent="saveSelected">
+            <q-input
+              v-model="inputName"
+              label="Nombre del centro"
+              autofocus
+              :rules="[
+                (val) =>
+                  (val && val.length > 4) ||
+                  'No puede estar vacio, mín. 4 chars',
+              ]"
+            />
+            <q-toggle
+              v-model="inputActive"
+              checked-icon="check"
+              color="green"
+              unchecked-icon="clear"
+              :label="inputActive ? 'Centro activado' : 'Centro desactivado'"
+            />
+          </q-form>
+        </q-card-section>
+
+        <q-card-actions align="right">
+          <q-btn label="Cancelar" color="accent" v-close-popup />
+          <q-btn
+            label="Guardar"
+            color="primary"
+            v-close-popup
+            @click="saveSelected"
           />
         </q-card-actions>
       </q-card>
@@ -95,51 +208,101 @@ const columns = [
   {
     name: "name",
     label: "Centro de trabajo",
-    field: (row) => row.name /* row.codigoUsuario + " " +   row.nombreUsuario*/,
+    field: (row) => row.name,
     required: true,
     align: "left",
     sortable: true,
-    format: (val, row) => `${val}`,
   },
   {
     name: "active",
     label: "Activo",
-    field: (row) => row.active, //row.cliente + " - " + row.descripcionServicio,
+    field: (row) => row.active,
     align: "left",
   },
 ];
 export default {
   setup() {
-    //    const recordsStore = useRecordsStore();
-    //  recordsStore.getNowRecords();
     const filter = ref("");
     const selected = ref([]);
     const confirmDelete = ref(false);
+    const dialogEdit = ref(false);
+    const dialogAdd = ref(false);
+    const inputName = ref("");
+    const inputActive = ref(false);
+
     const rows = ref([
-      { name: "Mollet", active: true },
-      { name: "Madrid", active: false },
+      { name: "Mollet", active: true, code: 5 },
+      { name: "Madrid", active: false, code: 4 },
     ]);
     function addRow() {
-      const newRow = { name: "Nuevo Centro", active: false };
+      const newRow = {
+        name: "Nuevo Centro",
+        active: false,
+        code: Math.random(),
+      };
       rows.value.push(newRow);
     }
     function deleteSelected() {
       rows.value = rows.value.filter((item) => {
-        console.log(selected.value[0] !== item);
         return item !== selected.value[0];
       });
       selected.value = [];
     }
 
+    function saveSelected() {
+      dialogAdd.value = false;
+      let newOb = {
+        name: inputName.value,
+        active: inputActive.value,
+        code: Math.random(),
+      };
+      rows.value.push(newOb);
+      inputActive.value = false;
+      inputName.value = "";
+    }
+
+    function updateSelected() {
+      dialogEdit.value = false;
+      rows.value.map((item) => {
+        if (item.code === selected.value[0].code) {
+          item.name = inputName.value;
+          item.active = inputActive.value;
+        }
+      });
+    }
+    function onRowDlbClick(evt, row, index) {
+      selected.value = [row];
+      showDialogEdit();
+    }
+    function showDialogAdd() {
+      selected.value = [];
+      dialogAdd.value = true;
+      inputActive.value = false;
+      inputName.value = "";
+    }
+    function showDialogEdit() {
+      dialogEdit.value = true;
+      inputName.value = selected.value[0]?.name;
+      inputActive.value = selected.value[0]?.active;
+    }
+
     return {
-      //  recordsStore,
       columns,
       rows,
       filter,
       selected,
       addRow,
       confirmDelete,
+      dialogAdd,
+      dialogEdit,
       deleteSelected,
+      saveSelected,
+      updateSelected,
+      onRowDlbClick,
+      inputActive,
+      inputName,
+      showDialogAdd,
+      showDialogEdit,
     };
   },
 };
@@ -147,7 +310,7 @@ export default {
 
 <style lang="scss">
 .my-sticky-table {
-  height: auto;
+  height: 41vh;
 }
 .q-table__top,
 .q-table__bottom,
