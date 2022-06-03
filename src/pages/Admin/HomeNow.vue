@@ -72,7 +72,7 @@ export default {
 .q-table__bottom,
 thead tr:first-child th {
   /* bg color is important for th; just specify one */
-  background-color: $grey;
+  background-color: $secondary;
 }
 
 thead tr th {

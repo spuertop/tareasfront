@@ -80,7 +80,7 @@
         @show="show('users')"
         @hide="hide('users')"
         :header-class="
-          showhide.includes('users') ? 'bg-primary text-white q-mt-md' : ''
+          showhide.includes('users') ? 'bg-primary text-white' : ''
         "
       >
         <q-card>
@@ -95,7 +95,7 @@
         @show="show('calendar')"
         @hide="hide('calendar')"
         :header-class="
-          showhide.includes('calendar') ? 'bg-primary text-white q-mt-md' : ''
+          showhide.includes('calendar') ? 'bg-primary text-white' : ''
         "
         icon="calendar_month"
         label="Calendario"
@@ -112,7 +112,7 @@
         @show="show('settings')"
         @hide="hide('settings')"
         :header-class="
-          showhide.includes('settings') ? 'bg-primary text-white q-mt-md' : ''
+          showhide.includes('settings') ? 'bg-primary text-white' : ''
         "
         icon="settings"
         label="Ajustes"
