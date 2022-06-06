@@ -65,7 +65,7 @@ export default {
 .my-sticky-header-table {
   //height: 500px;
   //max-height: auto;
-  height: 82vh;
+  height: 80vh;
 }
 
 .q-table__top,

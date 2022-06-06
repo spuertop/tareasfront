@@ -9,7 +9,7 @@
       :filter="filter"
       no-data-label="No se han encontrado datos"
       no-results-label="Sin coincidencias"
-      row-key="code"
+      row-key="id"
       v-model:selected="selected"
       selection="single"
       @row-dblclick="onRowDlbClick"
@@ -79,7 +79,7 @@
       </template>
     </q-table>
     <!-- DIALOG CONFIRM DELETE -->
-    <q-dialog v-model="confirmDelete" persistent>
+    <q-dialog v-model="confirmDelete">
       <q-card style="min-width: 25vw" flat bordered>
         <q-item class="bg-accent text-white">
           <q-item-section avatar>
@@ -166,7 +166,7 @@
           </q-item-section>
         </q-item>
         <q-card-section>
-          <q-form class="q-ma-sm" @submit.prevent="saveSelected">
+          <q-form class="q-ma-sm" @submit.prevent="saveNew">
             <q-input
               v-model="inputName"
               label="Nombre del centro"
@@ -193,55 +193,59 @@
             label="Guardar"
             color="primary"
             v-close-popup
-            @click="saveSelected"
+            @click="saveNew"
           />
         </q-card-actions>
       </q-card>
     </q-dialog>
+    <pre>{{ selected }}</pre>
+    <pre>{{ workplaceStore.workplaces }}</pre>
   </q-page>
 </template>
 
 <script>
 import { ref } from "vue";
+import { useWorkplaceStore } from "src/stores/workplace-store";
 
-const columns = [
-  {
-    name: "name",
-    label: "Centro de trabajo",
-    field: (row) => row.name,
-    required: true,
-    align: "left",
-    sortable: true,
-  },
-  {
-    name: "active",
-    label: "Activo",
-    field: (row) => row.active,
-    align: "left",
-  },
-];
 export default {
   setup() {
+    const workplaceStore = useWorkplaceStore();
+    workplaceStore.getWorkPlaces();
+
+    //Data
+    const columns = [
+      {
+        name: "name",
+        label: "Centro de trabajo",
+        field: (row) => row.name,
+        required: true,
+        align: "left",
+        sortable: true,
+      },
+      {
+        name: "active",
+        label: "Activo",
+        field: (row) => (row.deletedAt ? false : true),
+        align: "left",
+        sortable: true,
+      },
+    ];
+    /* const rows = ref([
+      { name: "Mollet", deleteAt: true, id: 5 },
+      { name: "Madrid", deleteAt: false, id: 4 },
+    ]); */
+
+    const rows = workplaceStore.workplaces;
+    //Table
     const filter = ref("");
+
+    //Form
     const selected = ref([]);
-    const confirmDelete = ref(false);
-    const dialogEdit = ref(false);
-    const dialogAdd = ref(false);
     const inputName = ref("");
     const inputActive = ref(false);
 
-    const rows = ref([
-      { name: "Mollet", active: true, code: 5 },
-      { name: "Madrid", active: false, code: 4 },
-    ]);
-    function addRow() {
-      const newRow = {
-        name: "Nuevo Centro",
-        active: false,
-        code: Math.random(),
-      };
-      rows.value.push(newRow);
-    }
+    //Delete
+    const confirmDelete = ref(false);
     function deleteSelected() {
       rows.value = rows.value.filter((item) => {
         return item !== selected.value[0];
@@ -249,24 +253,39 @@ export default {
       selected.value = [];
     }
 
-    function saveSelected() {
+    //New
+    const dialogAdd = ref(false);
+    function showDialogAdd() {
+      selected.value = [];
+      dialogAdd.value = true;
+      inputActive.value = false;
+      inputName.value = "";
+    }
+    function saveNew() {
       dialogAdd.value = false;
       let newOb = {
         name: inputName.value,
-        active: inputActive.value,
-        code: Math.random(),
+        deleteAt: inputActive.value,
+        id: Math.random(),
       };
       rows.value.push(newOb);
       inputActive.value = false;
       inputName.value = "";
     }
 
+    //Updates
+    const dialogEdit = ref(false);
+    function showDialogEdit() {
+      dialogEdit.value = true;
+      inputName.value = selected.value[0]?.name;
+      inputActive.value = selected.value[0]?.deletedAt ? false : true;
+    }
     function updateSelected() {
       dialogEdit.value = false;
       rows.value.map((item) => {
-        if (item.code === selected.value[0].code) {
+        if (item.id === selected.value[0].id) {
           item.name = inputName.value;
-          item.active = inputActive.value;
+          item.deletedAt = inputActive.value;
         }
       });
     }
@@ -274,35 +293,24 @@ export default {
       selected.value = [row];
       showDialogEdit();
     }
-    function showDialogAdd() {
-      selected.value = [];
-      dialogAdd.value = true;
-      inputActive.value = false;
-      inputName.value = "";
-    }
-    function showDialogEdit() {
-      dialogEdit.value = true;
-      inputName.value = selected.value[0]?.name;
-      inputActive.value = selected.value[0]?.active;
-    }
 
     return {
       columns,
       rows,
       filter,
       selected,
-      addRow,
       confirmDelete,
       dialogAdd,
       dialogEdit,
       deleteSelected,
-      saveSelected,
+      saveNew,
       updateSelected,
       onRowDlbClick,
       inputActive,
       inputName,
       showDialogAdd,
       showDialogEdit,
+      workplaceStore,
     };
   },
 };
@@ -310,15 +318,16 @@ export default {
 
 <style lang="scss">
 .my-sticky-table {
-  height: 41vh;
+  min-height: 41vh;
+  max-height: 89vh;
 }
 .q-table__top,
 .q-table__bottom,
 thead tr:first-child th {
-  /* bg color is important for th; just specify one */
   background-color: $grey;
-  padding-top: 6px;
-  padding-bottom: 0pt;
+  padding-top: 0px;
+  padding-bottom: 0px;
+  padding-left: 0px;
 }
 
 thead tr th {
