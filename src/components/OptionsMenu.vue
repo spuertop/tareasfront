@@ -130,7 +130,33 @@
             <q-item-section avatar><q-icon name="warehouse" /></q-item-section>
             <q-item-section>Centros de trabajo</q-item-section>
           </q-item>
+          <!-- AJUSTES CLIENTES -->
           <q-item
+            clickable
+            v-ripple
+            :active="link === '/api/customers'"
+            @click="link = '/api/customers'"
+            active-class="my-menu-link"
+            to="/api/customers"
+          >
+            <q-item-section avatar
+              ><q-icon name="business_center"
+            /></q-item-section>
+            <q-item-section>Clientes</q-item-section>
+          </q-item>
+          <!-- AJUSTES TAREAS -->
+          <q-item
+            clickable
+            v-ripple
+            :active="link === '/api/tasks'"
+            @click="link = '/api/tasks'"
+            active-class="my-menu-link"
+            to="/api/tasks"
+          >
+            <q-item-section avatar><q-icon name="task_alt" /></q-item-section>
+            <q-item-section>Tareas</q-item-section>
+          </q-item>
+          <!-- <q-item
             clickable
             v-ripple
             :active="link === '/api/test'"
@@ -138,9 +164,9 @@
             active-class="my-menu-link"
             to="/api/test"
           >
-            <q-item-section avatar><q-icon name="test" /></q-item-section>
+            <q-item-section avatar><q-icon name="business" /></q-item-section>
             <q-item-section>test</q-item-section>
-          </q-item>
+          </q-item> -->
         </q-list>
       </q-expansion-item>
     </q-list>

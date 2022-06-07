@@ -12,7 +12,7 @@ const routes = [
     path: '/api',
     component: () => import('layouts/AdminLayout.vue'),
     children: [
-      { path: '/api/login', component: () => import('pages/Admin/AdminStart.vue') },
+      { path: '/api/login', component: () => import('src/pages/Admin/AdminLogin.vue') },
     ]
   },
   {
@@ -24,9 +24,11 @@ const routes = [
 
       //SETTINGS
       { path: '/api/workplaces', component: () => import('pages/Admin/Settings/WorkPlacesPage.vue') },
+      { path: '/api/customers', component: () => import('pages/Admin/Settings/CustomersPage.vue') },
+      { path: '/api/tasks', component: () => import('pages/Admin/Settings/TasksPage.vue') },
 
       //TESTING
-      { path: '/api/test', component: () => import('pages/Admin/Settings/TESTw.vue') },
+
     ]
   },
   {
