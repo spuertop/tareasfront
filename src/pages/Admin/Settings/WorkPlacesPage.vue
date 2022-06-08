@@ -5,7 +5,7 @@
       bordered
       :rows-per-page-options="[0]"
       :columns="columns"
-      :rows="workplaceStore.workplaces"
+      :rows="settingsStore.workplaces"
       :filter="filter"
       row-key="id"
       v-model:selected="selected"
@@ -217,17 +217,19 @@
       </q-card>
     </q-dialog>
     <!-- <pre>{{ selected }}</pre>
-    <pre>{{ workplaceStore.workplaces }}</pre> -->
+    <pre>{{ settingsStore.workplaces }}</pre> -->
   </q-page>
 </template>
 
 <script>
 import { ref } from "vue";
-import { useWorkplaceStore } from "src/stores/workplace-store";
+import { useSettingsStore } from "src/stores/settings-store";
+import { useQuasar } from "quasar";
 
 export default {
   setup() {
-    const workplaceStore = useWorkplaceStore();
+    const settingsStore = useSettingsStore();
+    const $q = useQuasar();
     //Data
     const columns = [
       {
@@ -249,7 +251,7 @@ export default {
     //Table
     const filter = ref("");
     let loading = ref(true);
-    workplaceStore.getWorkPlaces();
+    settingsStore.getWorkPlaces();
     loading.value = false;
     //Form
     const selected = ref([]);
@@ -266,10 +268,11 @@ export default {
     async function saveNew() {
       loading.value = true;
       dialogAdd.value = false;
-      await workplaceStore.postWorkPlace({
+      const res = await settingsStore.postWorkPlace({
         name: inputName.value,
         deletedAt: inputActive.value,
       });
+      showRes(res);
       inputActive.value = false;
       inputName.value = "";
       loading.value = false;
@@ -284,7 +287,7 @@ export default {
     async function updateSelected() {
       loading.value = true;
       dialogEdit.value = false;
-      await workplaceStore.putWorkPlace({
+      await settingsStore.putWorkPlace({
         id: selected.value[0].id,
         name: inputName.value,
         deletedAt: inputActive.value,
@@ -303,10 +306,21 @@ export default {
     const confirmDelete = ref(false);
     async function deleteSelected() {
       loading.value = true;
-      await workplaceStore.deleteWorkPlace(selected.value[0]);
+      await settingsStore.deleteWorkPlace(selected.value[0]);
       selected.value = [];
       loading.value = false;
     }
+
+    function showRes(res) {
+      if (res && res.status !== 200) {
+        $q.notify({
+          type: "negative",
+          message: res,
+          actions: [{ icon: "close", color: "white" }],
+        });
+      }
+    }
+
     return {
       loading,
       columns,
@@ -323,7 +337,7 @@ export default {
       inputName,
       showDialogAdd,
       showDialogEdit,
-      workplaceStore,
+      settingsStore,
       onRowClick,
     };
   },
