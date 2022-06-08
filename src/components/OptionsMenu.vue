@@ -29,10 +29,10 @@
           <q-item
             clickable
             v-ripple
-            :active="link === '/last'"
+            :active="link === '/api/last'"
             @click="link = router.currentRoute._rawValue.path"
             active-class="my-menu-link"
-            to="/last"
+            to="/api/last"
           >
             <q-item-section avatar>
               <q-icon name="history" />

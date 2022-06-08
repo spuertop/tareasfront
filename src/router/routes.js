@@ -19,8 +19,8 @@ const routes = [
     path: '/api/now',
     component: () => import('layouts/AdminLayout.vue'),
     children: [
-      { path: '/api/now', component: () => import('pages/Admin/HomeNow.vue') },
-      { path: '/api/last', component: () => import('pages/AboutPage.vue') },
+      { path: '/api/now', component: () => import('src/pages/Admin/Records/HomeNow.vue') },
+      { path: '/api/last', component: () => import('src/pages/AboutPage.vue') },
 
       //SETTINGS
       { path: '/api/workplaces', component: () => import('pages/Admin/Settings/WorkPlacesPage.vue') },
