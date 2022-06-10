@@ -14,17 +14,16 @@
       @row-click="onRowClick"
       :loading="loading"
       dense
+      :pagination="pagination"
     >
       <template v-slot:top>
-        <q-icon name="warehouse" class="text-h5" />
-        <span class="text-h5">Centros de trabajo</span>
-        <q-space />
-        <q-input dense debounce="300" v-model="filter" placeholder="Buscar...">
-          <template v-slot:append>
-            <q-icon name="search" />
-          </template>
-        </q-input>
+        <v-slot-top
+          title="Centros de trabajo"
+          icon="warehouse"
+          @update:filter="filter = $event"
+        />
       </template>
+
       <template v-slot:body-cell-active="props">
         <q-td :props="props">
           <q-toggle
@@ -34,6 +33,13 @@
             unchecked-icon="clear"
             disable
           />
+        </q-td>
+      </template>
+      <template v-slot:body-cell-customers="props">
+        <q-td :props="props">
+          <span v-for="item in props.value" :key="item.id">
+            <q-chip>{{ item.name }}</q-chip>
+          </span>
         </q-td>
       </template>
       <template v-slot:bottom>
@@ -141,16 +147,7 @@
         </q-item>
         <q-card-section>
           <q-form class="q-ma-sm" @submit.prevent="updateSelected">
-            <q-input
-              v-model="inputName"
-              label="Nombre del centro"
-              autofocus
-              :rules="[
-                (val) =>
-                  (val && val.length > 4) ||
-                  'No puede estar vacio, mín. 4 chars',
-              ]"
-            />
+            <q-input v-model="inputName" label="Nombre del centro" autofocus />
             <q-toggle
               v-model="inputActive"
               checked-icon="check"
@@ -158,6 +155,15 @@
               unchecked-icon="clear"
               :label="inputActive ? 'Centro activado' : 'Centro desactivado'"
             />
+            <!-- Show customers of this workplace -->
+            <br />
+            <span
+              v-if="selected[0].Customers && selected[0].Customers.length > 0"
+              >Clientes asignados:</span
+            >
+            <div v-for="item in selected[0].Customers" :key="item.id">
+              <q-chip>{{ item.name }}</q-chip>
+            </div>
           </q-form>
         </q-card-section>
 
@@ -216,7 +222,7 @@
         </q-card-actions>
       </q-card>
     </q-dialog>
-    <!-- <pre>{{ selected }}</pre>
+    <!--     <pre>{{ selected }}</pre>
     <pre>{{ settingsStore.workplaces }}</pre> -->
   </q-page>
 </template>
@@ -225,12 +231,14 @@
 import { ref } from "vue";
 import { useSettingsStore } from "src/stores/settings-store";
 import { useQuasar } from "quasar";
+import VSlotTop from "src/components/VSlotTop.vue";
 
 export default {
   setup() {
     const settingsStore = useSettingsStore();
     const $q = useQuasar();
     //Data
+    const pagination = { sortBy: "name" };
     const columns = [
       {
         name: "name",
@@ -247,11 +255,21 @@ export default {
         align: "left",
         sortable: true,
       },
+      {
+        name: "customers",
+        label: "Clientes asignados",
+        align: "left",
+        field: (row) =>
+          row.Customers.sort((a, b) =>
+            a.name > b.name ? 1 : b.name > a.name ? -1 : 0
+          ),
+      },
     ];
     //Table
     const filter = ref("");
     let loading = ref(true);
     settingsStore.getWorkPlaces();
+    settingsStore.getCustomers();
     loading.value = false;
     //Form
     const selected = ref([]);
@@ -310,7 +328,6 @@ export default {
       selected.value = [];
       loading.value = false;
     }
-
     function showRes(res) {
       if (res && res.status !== 200) {
         $q.notify({
@@ -320,7 +337,6 @@ export default {
         });
       }
     }
-
     return {
       loading,
       columns,
@@ -334,6 +350,7 @@ export default {
       updateSelected,
       onRowDlbClick,
       inputActive,
+      pagination,
       inputName,
       showDialogAdd,
       showDialogEdit,
@@ -341,29 +358,8 @@ export default {
       onRowClick,
     };
   },
+  components: { VSlotTop },
 };
 </script>
 
-<style lang="scss">
-.my-sticky-table {
-  //min-height: 41vh;
-  //max-height: 89vh;
-  height: 89vh;
-}
-.q-table__top,
-.q-table__bottom,
-thead tr:first-child th {
-  background-color: $grey;
-  padding-top: 0px;
-  padding-bottom: 0px;
-  padding-left: 0px;
-}
-
-thead tr th {
-  position: sticky;
-  z-index: 1;
-}
-thead tr:first-child th {
-  top: 0;
-}
-</style>
+<style lang="scss"></style>

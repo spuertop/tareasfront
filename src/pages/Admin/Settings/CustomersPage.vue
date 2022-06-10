@@ -14,7 +14,9 @@
       @row-click="onRowClick"
       :loading="loading"
       dense
+      :pagination="pagination"
     >
+      <!--TABLE HEADER -->
       <template v-slot:top>
         <q-icon name="business_center" class="text-h5" />
         <span class="text-h5">Clientes</span>
@@ -25,6 +27,7 @@
           </template>
         </q-input>
       </template>
+      <!-- TABLE CELL 'ACTIVE'-->
       <template v-slot:body-cell-active="props">
         <q-td :props="props">
           <q-toggle
@@ -36,6 +39,15 @@
           />
         </q-td>
       </template>
+      <!-- TABLE CELL WORKPLACES -->
+      <template v-slot:body-cell-workplaces="props">
+        <q-td :props="props">
+          <span v-for="item in props.value" :key="item.id">
+            <q-chip>{{ item.name }}</q-chip>
+          </span>
+        </q-td>
+      </template>
+      <!-- TABLE BOTTOM WITH DATA -->
       <template v-slot:bottom>
         <div class="q-pa-sm q-gutter-sm">
           <q-btn
@@ -64,6 +76,7 @@
           :disable="selected.length == 0"
         />
       </template>
+      <!-- TABLE BOTTOM WITHOUT DATA -->
       <template v-slot:no-data>
         <div class="q-pa-sm q-gutter-sm">
           <p>No se han encontrado datos.</p>
@@ -158,6 +171,15 @@
               unchecked-icon="clear"
               :label="inputActive ? 'Cliente activado' : 'Cliente desactivado'"
             />
+            <q-select
+              v-model="multiple"
+              multiple
+              :options="options"
+              label="Centros de trabajo"
+              use-chips
+              stack-label
+              style="max-width: 25vw"
+            />
           </q-form>
         </q-card-section>
 
@@ -216,8 +238,9 @@
         </q-card-actions>
       </q-card>
     </q-dialog>
-    <!-- <pre>{{ selected }}</pre>
-    <pre>{{ settingsStore.workplaces }}</pre> -->
+    <!--     <pre>{{ options }}</pre>
+    <pre>{{ selected }}</pre>
+    <pre>{{ settingsStore.customers }}</pre> -->
   </q-page>
 </template>
 
@@ -229,6 +252,7 @@ export default {
   setup() {
     const settingsStore = useSettingsStore();
     //Data
+    const pagination = { sortBy: "name" };
     const columns = [
       {
         name: "name",
@@ -245,17 +269,35 @@ export default {
         align: "left",
         sortable: true,
       },
+      {
+        name: "workplaces",
+        label: "Centros asignados",
+        align: "left",
+        field: (row) =>
+          row.Workplaces.sort((a, b) =>
+            a.name > b.name ? 1 : b.name > a.name ? -1 : 0
+          ),
+      },
     ];
     //Table
     const filter = ref("");
     let loading = ref(true);
-
     settingsStore.getCustomers();
+    settingsStore.getWorkPlaces();
     loading.value = false;
     //Form
     const selected = ref([]);
     const inputName = ref("");
     const inputActive = ref(false);
+    const multiple = ref([]);
+    //Transform Workplaces into options of select (only active items)
+    let options = settingsStore.workplaces
+      .map((item) => {
+        item.label = item.name;
+        item.value = item.id;
+        return item;
+      })
+      .filter((item) => item.deletedAt === null);
     //New
     const dialogAdd = ref(false);
     function showDialogAdd() {
@@ -280,6 +322,13 @@ export default {
     function showDialogEdit() {
       inputName.value = selected.value[0]?.name;
       inputActive.value = selected.value[0]?.deletedAt ? false : true;
+      multiple.value = [];
+      for (let i = 0; i < selected.value[0].Workplaces?.length; i++) {
+        let op = options.filter(
+          (item) => item.id === selected.value[0].Workplaces[i].id
+        );
+        multiple.value.push(op[0]);
+      }
       dialogEdit.value = true;
     }
     async function updateSelected() {
@@ -289,6 +338,7 @@ export default {
         id: selected.value[0].id,
         name: inputName.value,
         deletedAt: inputActive.value,
+        workplaces: multiple.value,
       });
       selected.value = [];
       loading.value = false;
@@ -310,6 +360,8 @@ export default {
     }
     return {
       loading,
+      options,
+      multiple,
       columns,
       filter,
       selected,
@@ -326,31 +378,8 @@ export default {
       showDialogEdit,
       settingsStore,
       onRowClick,
+      pagination,
     };
   },
 };
 </script>
-
-<style lang="scss">
-.my-sticky-table {
-  //min-height: 41vh;
-  //max-height: 89vh;
-  height: 89vh;
-}
-.q-table__top,
-.q-table__bottom,
-thead tr:first-child th {
-  background-color: $grey;
-  padding-top: 0px;
-  padding-bottom: 0px;
-  padding-left: 0px;
-}
-
-thead tr th {
-  position: sticky;
-  z-index: 1;
-}
-thead tr:first-child th {
-  top: 0;
-}
-</style>

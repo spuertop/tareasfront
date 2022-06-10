@@ -1,5 +1,14 @@
 <template>
-  <h1 class="q-pa-md">About</h1>
+  <testin-about
+    title="Titulo1"
+    @update:modelValue="myData = $event"
+    @update:filter="filter = $event"
+  />
+  <span> {{ myData }}</span
+  ><br />
+  <span>{{ filter }}</span>
+  <br />
+  <span class="q-pa-md text-h2">About</span>
   <div class="q-pa-md" style="max-width: 350px">
     <q-input v-model="text" label="Nombre" />
     <p>{{ text }}</p>
@@ -45,10 +54,13 @@
 <script setup>
 import { computed } from "@vue/reactivity";
 import { ref } from "vue";
+import TestinAbout from "src/components/TestinAbout.vue";
 
 const prompt = ref(false);
 const address = ref("");
 const name = ref("");
+const myData = ref("A");
+const filter = ref("");
 
 const text = ref("");
 const lista = ref([
